@@ -43,7 +43,12 @@ const unixAlert = (src: string) =>
 
 async function download(url: string, filename: string) {
   console.log("Downloading", url, "to", filename);
-  const response = await fetch(url);
+  // Cache-bust http(s) downloads so a stale CDN edge can't serve an old
+  // version right after a release. (file:// URLs are used in local tests.)
+  const noCacheUrl = url.startsWith("http")
+    ? url + (url.includes("?") ? "&" : "?") + "t=" + Date.now()
+    : url;
+  const response = await fetch(noCacheUrl);
   if (!response.ok) {
     throw new Error(`Failed to download ${url}: HTTP ${response.status}`);
   }
@@ -400,8 +405,14 @@ export async function patch(event: WebUIEvent, stremioPath: string) {
 
   let patchContent;
   try {
-    const data = (await fetch(urlPatch)).arrayBuffer();
-    patchContent = new TextDecoder().decode(new Uint8Array(await data));
+    const noCacheUrl = urlPatch.startsWith("http")
+      ? urlPatch + (urlPatch.includes("?") ? "&" : "?") + "t=" + Date.now()
+      : urlPatch;
+    const response = await fetch(noCacheUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    patchContent = new TextDecoder().decode(
+      new Uint8Array(await response.arrayBuffer()),
+    );
   } catch (e) {
     console.error(e);
     return "Failed to download patch, make sure you have an established internet connection.";
