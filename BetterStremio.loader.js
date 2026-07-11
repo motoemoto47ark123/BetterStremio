@@ -514,7 +514,7 @@
 #betterstremio-fab .bs-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #dd2232; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; font-family: sans-serif; }
 #betterstremio-overlay { position: fixed; inset: 0; background: rgba(8,7,14,.75); backdrop-filter: blur(4px); z-index: 999991; display: none; }
 #betterstremio-overlay.bs-open { display: block; }
-#betterstremio-panel { position: absolute; inset: 5vh 50%; transform: translateX(50%); width: min(960px, 92vw); height: 90vh; background: #14121f; border: 1px solid #2c2844; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; color: #e6e4f2; font-family: 'PlusJakartaSans', 'Plus Jakarta Sans', system-ui, sans-serif; }
+#betterstremio-panel { position: absolute; top: 5vh; left: 50%; transform: translateX(-50%); width: min(960px, 92vw); height: 90vh; background: #14121f; border: 1px solid #2c2844; border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; color: #e6e4f2; font-family: 'PlusJakartaSans', 'Plus Jakarta Sans', system-ui, sans-serif; }
 .bs-panel-header { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 1px solid #2c2844; }
 .bs-panel-header svg { width: 30px; height: 30px; color: #a78bfa; flex-shrink: 0; }
 .bs-panel-title { font-size: 20px; font-weight: 400; background: linear-gradient(90deg, #c4b5fd, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
