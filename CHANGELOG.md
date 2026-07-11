@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-07-10
+
+### Added
+
+- **Stremio 5 support**: works with the new Stremio desktop app (`stremio-shell-ng`), including the new default install path (`%localAppData%\Programs\Stremio\`).
+- **No more special shortcuts (Stremio 5)**: the installer replaces `stremio-shell-ng.exe` with a tiny launcher (original kept as `stremio-shell-ng-vanilla.exe`) that starts Stremio with the BetterStremio web UI. Opening Stremio from the Start Menu, taskbar or `stremio://` links just works.
+- **New desktop UI support**: BetterStremio now injects into the regular Stremio 5 interface (web.stremio.com) with a floating button + management panel (`Ctrl+Shift+B`) for plugins & themes. The classic v4 UI keeps the original BetterStremio tab.
+- GitHub Actions workflow that builds the Windows installer on every push and attaches it to releases on tags.
+
+### Fixed
+
+- Installer no longer hangs while "Scanning for existing Stremio shortcuts": the recursive scan of `%APPDATA%`/`%PROGRAMDATA%` (one PowerShell process per shortcut) was replaced by a single fast scan of the actual shortcut folders with a hard timeout.
+- `--development --streaming-server` args are removed from Stremio 5 shortcuts (they crash the new shell).
+- Stremio processes are now correctly stopped before patching (`stremio-shell-ng.exe`, `stremio-runtime.exe`).
+- Extra downloads (WatchParty/Amoled) were not awaited, so failures were silently ignored.
+- BetterStremio folder resolution no longer depends on the working directory Stremio was launched from.
+- Patched page is served in standards mode (injection happens inside `<head>` instead of before `<!doctype>`).
+- Theme update check logged `undefined` instead of the theme name.
+
 ## [1.0.5] - 2024-01-05
 
 ### Added

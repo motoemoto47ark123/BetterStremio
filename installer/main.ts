@@ -8,6 +8,7 @@ if (Deno.build.os === "windows") {
   // hide terminal with powershell
   new Deno.Command("powershell", {
     args: [
+      "-NoProfile",
       "-Command",
       'Add-Type -Name ConsoleUtils -Namespace Win32 -MemberDefinition \'[DllImport("Kernel32.dll")]public static extern IntPtr GetConsoleWindow();[DllImport("User32.dll")]public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);\';[Void][Win32.ConsoleUtils]::ShowWindow([Win32.ConsoleUtils]::GetConsoleWindow(), 0)',
     ],

@@ -23,10 +23,65 @@ global.getBetterStremioPath = () => {
     const path = requireModule("path");
     switch (getOS()) {
         case `win`:
-            return path.join(process.cwd(), "BetterStremio");
+            // Resolve from the runtime executable location (the Stremio program
+            // folder) instead of process.cwd(), which depends on how Stremio
+            // was launched (Start Menu, protocol link, terminal...).
+            return path.join(path.dirname(process.execPath), "BetterStremio");
         case `linux`:
         case `macos`:
             return path.join(process.env.HOME, ".config", "BetterStremio");
+    }
+}
+
+global.serveBetterStremioShell = async (req, res, next, webui) => {
+    if (!req.headers.host) return next("No host header");
+    var socketConstructor = req.socket.constructor.name,
+        protocol = "";
+
+    if ("Socket" == socketConstructor) protocol = "http://";
+    else {
+        if ("TLSSocket" != socketConstructor) return next("Unknown protocol");
+        protocol = "https://";
+    }
+
+    const host = protocol + req.headers.host;
+    const source = webui === "v5" ? "https://web.stremio.com/" : webUILocation;
+    const inject = `<base href="${source}"/>` +
+        `<style type="text/css">@font-face {font-family: 'icon-full-height';src: url('${host}/better-stremio/src/fonts/icon-full-height.ttf?3lc42w') format('truetype'), url('${host}/better-stremio/src/fonts/icon-full-height.woff?3lc42w') format('woff');font-weight: normal;font-style: normal;} @font-face {font-family: 'PlusJakartaSans';src: url("${host}/better-stremio/src/fonts/PlusJakartaSans.ttf") format('truetype')}</style>` +
+        `<script type="text/javascript">BetterStremio = {host: "${host}/better-stremio", webui: "${webui}"}</script>` +
+        `<script type="text/javascript" src="${host}/better-stremio/src/BetterStremio.loader.js"></script>`;
+
+    try {
+        const fetch = requireModule("node-fetch");
+        const shell = await fetch(source, {
+            "headers": {
+                "sec-ch-ua": "\"BetterStremio\";v=\"1\"",
+                "sec-ch-ua-mobile": "?0",
+                "upgrade-insecure-requests": "1"
+            },
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "body": null,
+            "method": "GET"
+        });
+        if (!shell.ok) throw new Error("HTTP " + shell.status);
+        let html = await shell.text();
+        // Inject right after <head> so the loader runs before the app
+        // bootstraps and the document stays in standards mode.
+        if (/<head>/i.test(html)) html = html.replace(/<head>/i, (m) => m + inject);
+        else html = inject + html;
+        res.writeHead(200, {
+            "content-type": "text/html; charset=utf-8"
+        });
+        res.end(html);
+    } catch (err) {
+        const message = "<html><body style=\"background:#0c0b11;color:#fff;font-family:sans-serif;text-align:center;padding-top:20vh\">" +
+            "<h1>BetterStremio</h1><p>Failed to load the Stremio Web UI from <code>" + source + "</code>.</p>" +
+            "<p>Check your internet connection, then close Stremio from the system tray and reopen it.</p>" +
+            "<p style=\"color:#888\">" + (err && err.toString()) + "</p></body></html>";
+        res.writeHead(502, {
+            "content-type": "text/html; charset=utf-8"
+        });
+        res.end(message);
     }
 }
 
@@ -111,7 +166,6 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
         "content-length": message.length
     }), res.end(message);
 })), enginefs.router.use("/better-stremio/folder", (function(_req, res, _next) {
-    requireModule("fs");
     const child_process = requireModule("child_process");
 
     try {
@@ -135,7 +189,6 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
         }), res.end(message);
     }
 })), enginefs.router.use("/better-stremio/changelog", (function(_req, res, _next) {
-    requireModule("fs");
     const child_process = requireModule("child_process");
 
     try {
@@ -145,7 +198,7 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
             "linux": "xdg-open",
             "macos": "open"
         } [platform];
-        child_process.spawn(cmd, ["https://github.com/MateusAquino/BetterStremio/blob/main/CHANGELOG.md"]);
+        child_process.spawn(cmd, ["https://github.com/motoemoto47ark123/BetterStremio/blob/main/CHANGELOG.md"]);
         res.writeHead(204);
         return res.end();
     } catch (err) {
@@ -164,7 +217,7 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
     try {
         const BSPath = getBetterStremioPath();
         message = JSON.stringify({
-            v: 1,
+            v: 2,
             path: BSPath,
             plugins: fs.readdirSync(path.resolve(BSPath, 'plugins')),
             themes: fs.readdirSync(path.resolve(BSPath, 'themes'))
@@ -179,33 +232,14 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
         "content-type": "application/json",
         "content-length": message.length
     }), res.end(message);
-})), enginefs.router.get("/", (async function(req, res, next) {
-    if (!req.headers.host) return next("No host header");
-    var socketConstructor = req.socket.constructor.name,
-        protocol = "";
-
-    if ("Socket" == socketConstructor) protocol = "http://";
-    else {
-        if ("TLSSocket" != socketConstructor) return next("Unknown protocol");
-        protocol = "https://";
-    }
-
-    res.write(`<base href="${webUILocation}"/>`)
-    res.write(`<style type="text/css">@font-face {font-family: 'icon-full-height';src: url('${protocol + req.headers.host}/better-stremio/src/fonts/icon-full-height.ttf?3lc42w') format('truetype'), url('${protocol + req.headers.host}/better-stremio/src/fonts/icon-full-height.woff?3lc42w') format('woff');font-weight: normal;font-style: normal;} @font-face {font-family: 'PlusJakartaSans';src: url("${protocol + req.headers.host}/better-stremio/src/fonts/PlusJakartaSans.ttf") format('truetype')}</style>`)
-    res.write(`<script type="text/javascript">BetterStremio = {host: "${protocol + req.headers.host}/better-stremio"}</script>`)
-    res.write(`<script type="text/javascript" src="${protocol + req.headers.host}/better-stremio/src/BetterStremio.loader.js"></script>`)
-
-    const fetch = requireModule("node-fetch");
-    const shell = await fetch(webUILocation, {
-        "headers": {
-            "sec-ch-ua": "\"BetterStremio\";v=\"1\"",
-            "sec-ch-ua-mobile": "?0",
-            "upgrade-insecure-requests": "1"
-        },
-        "referrerPolicy": "strict-origin-when-cross-origin",
-        "body": null,
-        "method": "GET"
-    });
-    res.end(await shell.text())
+})), enginefs.router.get("/betterstremio-v5", (function(req, res, next) {
+    // New Stremio 5 desktop UI (same one the app normally shows) with
+    // BetterStremio injected. The BetterStremio launcher points the shell
+    // here via --webui-url.
+    return serveBetterStremioShell(req, res, next, "v5");
+})), enginefs.router.get("/", (function(req, res, next) {
+    // Classic v4 web UI, used by the old Stremio 4.x shells launched with
+    // --development --streaming-server.
+    return serveBetterStremioShell(req, res, next, "v4");
 }));
 /* BetterStremio:end */

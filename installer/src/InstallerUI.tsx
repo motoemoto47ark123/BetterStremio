@@ -73,7 +73,7 @@ export default function InstallerUI() {
                   {result.type === "install" ? "patched" : "unpatched"}. If you
                   have any issues, please report them on{" "}
                   <a
-                    href="https://github.com/MateusAquino/BetterStremio/issues"
+                    href="https://github.com/motoemoto47ark123/BetterStremio/issues"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-purple-300"
@@ -117,7 +117,7 @@ export default function InstallerUI() {
                   If you are unable to resolve the issue, please seek help on
                   {" "}
                   <a
-                    href="https://github.com/MateusAquino/BetterStremio/issues"
+                    href="https://github.com/motoemoto47ark123/BetterStremio/issues"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-purple-300"
@@ -176,7 +176,7 @@ export default function InstallerUI() {
                   <div className="relative">
                     <div className="flex items-center space-x-4">
                       <img
-                        src="https://github.com/MateusAquino/BetterStremio/raw/main/logo.png"
+                        src="https://github.com/motoemoto47ark123/BetterStremio/raw/main/logo.png"
                         width={90}
                         height={90}
                         alt="BetterStremio Logo"
@@ -198,7 +198,7 @@ export default function InstallerUI() {
                 <Clapperboard className="w-6 h-6 text-purple-300" />
                 <a
                   className="text-purple-300 hover:underline font-medium"
-                  href="https://github.com/MateusAquino/BetterStremio"
+                  href="https://github.com/motoemoto47ark123/BetterStremio"
                   target="_blank"
                   rel="noopener noreferrer"
                   title="BetterStremio GitHub Repository"
@@ -224,13 +224,15 @@ export default function InstallerUI() {
                       server.js
                     </code>{" "}
                     file to inject code (plugins and themes) in the local
-                    development web server hosted at{" "}
+                    streaming server hosted at{" "}
                     <code className="bg-zinc-800 px-2 py-1 rounded text-purple-400">
                       127.0.0.1:11470
                     </code>{" "}
                     and adds a loader script to run external plugins and CSS
-                    themes. There is no need to download external custom Stremio
-                    executables! :)
+                    themes. On Stremio 5 it also sets up a small launcher so
+                    that opening Stremio normally (Start Menu, taskbar,
+                    stremio:// links) loads BetterStremio automatically — no
+                    special shortcuts needed! :)
                   </p>
                 </div>
               </div>
@@ -252,32 +254,32 @@ export default function InstallerUI() {
                 {
                   title: "Documentation",
                   url:
-                    "https://github.com/MateusAquino/BetterStremio/blob/main/README.md#-developing-plugins--themes",
+                    "https://github.com/motoemoto47ark123/BetterStremio/blob/main/README.md#-developing-plugins--themes",
                   description:
                     "Guides and references for Plugins and Themes developers",
                 },
                 {
                   title: "GitHub Repository",
-                  url: "https://github.com/MateusAquino/BetterStremio",
+                  url: "https://github.com/motoemoto47ark123/BetterStremio",
                   description:
                     "Access or contribute to the BetterStremio source code and installer",
                 },
                 {
                   title: "Support",
-                  url: "https://github.com/MateusAquino/BetterStremio/issues",
+                  url: "https://github.com/motoemoto47ark123/BetterStremio/issues",
                   description:
                     "Get help from our community, report issues or request features",
                 },
                 {
                   title: "Installer Releases",
-                  url: "https://github.com/MateusAquino/BetterStremio/releases",
+                  url: "https://github.com/motoemoto47ark123/BetterStremio/releases",
                   description:
                     "Once installed, BetterStremio is auto-updated to the latest version, but you can still view all previous installer releases here",
                 },
                 {
                   title: "Changelog",
                   url:
-                    "https://github.com/MateusAquino/BetterStremio/blob/main/CHANGELOG.md",
+                    "https://github.com/motoemoto47ark123/BetterStremio/blob/main/CHANGELOG.md",
                   description:
                     "See what's new in the latest BetterStremio version",
                 },
@@ -330,7 +332,10 @@ export default function InstallerUI() {
                             files.
                             <br />
                             <br />
-                            default (win):{" "}
+                            default (Stremio 5):{" "}
+                            <code>%localAppData%\Programs\Stremio\</code>
+                            <br />
+                            default (Stremio 4):{" "}
                             <code>%localAppData%\Programs\LNV\Stremio-4\</code>
                             <br />
                             default (unix): <code>/opt/stremio/</code>

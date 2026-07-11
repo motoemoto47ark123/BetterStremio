@@ -7,7 +7,11 @@
 
 ## 💡 How it works
 
-**BetterStremio** patches the `server.js` file to inject code in the local development web server hosted at `127.0.0.1:11470` and adds a loader script to run external plugins and CSS themes. There is no need to download external custom Stremio executables! :)
+**BetterStremio** patches the `server.js` file to inject code in the local streaming server hosted at `127.0.0.1:11470` and adds a loader script to run external plugins and CSS themes. There is no need to download external custom Stremio executables! :)
+
+**Stremio 5 (new desktop app)**: the installer also swaps `stremio-shell-ng.exe` with a tiny launcher (the original executable is kept next to it as `stremio-shell-ng-vanilla.exe`) that starts Stremio pointing at the patched local server. This means you can open Stremio normally — Start Menu, taskbar, `stremio://` links — and BetterStremio is always active, with the regular desktop interface plus a floating BetterStremio button (or press `Ctrl+Shift+B`) to manage plugins & themes.
+
+**Stremio 4 (old desktop app)**: the classic behavior is kept — shortcuts are updated with `--development --streaming-server` and BetterStremio appears as a new tab in the app.
 
 
 ![image](https://github.com/MateusAquino/BetterStremio/assets/16140783/1d721c4f-6493-4ed7-bb6c-ddc804b88630)
@@ -20,10 +24,12 @@
   </a>
 </p>
 
-Download and run the installer from the [releases page](https://github.com/MateusAquino/BetterStremio/releases/). You can also choose the "Uninstall" option to unpatch changes made to Stremio's server.js file and all modified shortcuts.
+Download and run the installer from the [releases page](https://github.com/motoemoto47ark123/BetterStremio/releases/) (also built automatically by the [Build Installer workflow](https://github.com/motoemoto47ark123/BetterStremio/actions/workflows/build-installer.yml)). You can also choose the "Uninstall" option to restore the original executable and unpatch changes made to Stremio's server.js file and shortcuts.
 
 > [!TIP]
-> The original stremio server can still be used when opening `stremio.exe`. For BetterStremio to work it **must** be opened though the shotcut.
+> On **Stremio 5** just open Stremio normally after installing — no special shortcut needed. If you ever want vanilla Stremio, run `stremio-shell-ng-vanilla.exe` directly. On **Stremio 4** BetterStremio only loads when opened through the updated shortcut.
+>
+> Note: after installing, Stremio's interface is served from `127.0.0.1:11470` (a different browser origin), so you will be asked to log in to your Stremio account once.
 
 
 For **Linux users**, it is required to run Stremio manually with the flags: `--development --streaming-server`, please add it to your shortcuts.  
