@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-07-10
+
+### Fixed
+
+- Stremio 5 UI stuck on the splash screen: the web UI boots its core in a Web Worker, which must be same-origin — its static assets are now proxied through the local server instead of loaded via `<base href>`.
+- Loader self-update no longer downgrades to older/cached versions (strict semver comparison + cache busting) and the loader script is always served fresh (`Cache-Control: no-store`).
+
 ## [1.1.0] - 2026-07-10
 
 ### Added

@@ -11,7 +11,7 @@
  */
 
 (function boot() {
-  BetterStremio.version = "1.1.0";
+  BetterStremio.version = "1.1.1";
   BetterStremio.errors = [];
 
   const IS_V5 = BetterStremio.webui === "v5";
@@ -297,6 +297,19 @@
     }
   }
 
+  function isNewerVersion(remote, local) {
+    const remoteParts = String(remote).split(".").map((n) =>
+      parseInt(n, 10) || 0
+    );
+    const localParts = String(local).split(".").map((n) => parseInt(n, 10) || 0);
+    const length = Math.max(remoteParts.length, localParts.length);
+    for (let i = 0; i < length; i++) {
+      if ((remoteParts[i] || 0) > (localParts[i] || 0)) return true;
+      if ((remoteParts[i] || 0) < (localParts[i] || 0)) return false;
+    }
+    return false;
+  }
+
   async function checkForUpdates() {
     const updateURL =
       "https://raw.githubusercontent.com/motoemoto47ark123/BetterStremio/main/BetterStremio.loader.js";
@@ -313,10 +326,14 @@
       .then(async (res) => {
         const loader = await res.text();
         const match = /BetterStremio\.version\s*=\s*"(.*?)"/gm.exec(loader);
-        if (match && match[1] && match[1] !== BetterStremio.version) {
+        // Only upgrade on a strictly newer version: CDN caches may still
+        // serve older loaders, which previously caused downgrade loops.
+        if (
+          match && match[1] && isNewerVersion(match[1], BetterStremio.version)
+        ) {
           await BetterStremio.Internal.update(
             "BetterStremio.loader.js",
-            updateURL,
+            updateURLNoCache,
           );
           BetterStremio.Toasts?.info?.(
             "BetterStremio update available!",

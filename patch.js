@@ -33,6 +33,34 @@ global.getBetterStremioPath = () => {
     }
 }
 
+global.proxyWebUIAsset = async (req, res, next) => {
+    // Serves the Stremio 5 web UI static assets from the local origin.
+    // Required because the UI boots its core inside a Web Worker, and
+    // workers can only be constructed from same-origin scripts.
+    try {
+        const fetch = requireModule("node-fetch");
+        const upstream = "https://web.stremio.com" + req.originalUrl;
+        const response = await fetch(upstream, {
+            "headers": {
+                "accept": req.headers["accept"] || "*/*",
+                "accept-language": req.headers["accept-language"] || "en-US,en;q=0.9"
+            }
+        });
+        if (!response.ok) return next();
+        const body = await (response.buffer ? response.buffer() : response.arrayBuffer().then((b) => Buffer.from(b)));
+        const headers = {};
+        const contentType = response.headers.get("content-type");
+        const cacheControl = response.headers.get("cache-control");
+        if (contentType) headers["content-type"] = contentType;
+        if (cacheControl) headers["cache-control"] = cacheControl;
+        res.writeHead(response.status, headers);
+        res.end(body);
+    } catch (err) {
+        console.error("[BetterStremio] Failed to proxy web UI asset:", err);
+        return next();
+    }
+}
+
 global.serveBetterStremioShell = async (req, res, next, webui) => {
     if (!req.headers.host) return next("No host header");
     var socketConstructor = req.socket.constructor.name,
@@ -46,10 +74,13 @@ global.serveBetterStremioShell = async (req, res, next, webui) => {
 
     const host = protocol + req.headers.host;
     const source = webui === "v5" ? "https://web.stremio.com/" : webUILocation;
-    const inject = `<base href="${source}"/>` +
+    // v5 assets resolve against the local origin (see proxyWebUIAsset); the
+    // classic v4 UI keeps loading its assets straight from app.strem.io.
+    const base = webui === "v5" ? "/" : source;
+    const inject = `<base href="${base}"/>` +
         `<style type="text/css">@font-face {font-family: 'icon-full-height';src: url('${host}/better-stremio/src/fonts/icon-full-height.ttf?3lc42w') format('truetype'), url('${host}/better-stremio/src/fonts/icon-full-height.woff?3lc42w') format('woff');font-weight: normal;font-style: normal;} @font-face {font-family: 'PlusJakartaSans';src: url("${host}/better-stremio/src/fonts/PlusJakartaSans.ttf") format('truetype')}</style>` +
         `<script type="text/javascript">BetterStremio = {host: "${host}/better-stremio", webui: "${webui}"}</script>` +
-        `<script type="text/javascript" src="${host}/better-stremio/src/BetterStremio.loader.js"></script>`;
+        `<script type="text/javascript" src="${host}/better-stremio/src/BetterStremio.loader.js?v=${Date.now()}"></script>`;
 
     try {
         const fetch = requireModule("node-fetch");
@@ -93,6 +124,9 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
     const filePath = path.join(staticFolder, requestedPath.replace(/[#?].*$/, ''));
 
     res.setHeader("Access-Control-Allow-Origin", "*");
+    // Plugins/themes/loader must always be read fresh from disk; otherwise
+    // the WebView may keep serving old versions after an update.
+    res.setHeader("Cache-Control", "no-store");
 
     fs.stat(filePath, (err, stats) => {
         if (err || !stats.isFile()) {
@@ -232,6 +266,10 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
         "content-type": "application/json",
         "content-length": message.length
     }), res.end(message);
+})), enginefs.router.get(/^\/(?:[0-9a-f]{16,}\/|favicons\/|manifest\.json$)/, (function(req, res, next) {
+    // Static assets of the Stremio 5 web UI (hashed bundle dir, favicons,
+    // PWA manifest), proxied so they are same-origin (see proxyWebUIAsset).
+    return proxyWebUIAsset(req, res, next);
 })), enginefs.router.get("/betterstremio-v5", (function(req, res, next) {
     // New Stremio 5 desktop UI (same one the app normally shows) with
     // BetterStremio injected. The BetterStremio launcher points the shell
