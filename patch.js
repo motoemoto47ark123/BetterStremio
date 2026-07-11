@@ -266,9 +266,12 @@ enginefs.router.use("/better-stremio/src", (function(req, res, next) {
         "content-type": "application/json",
         "content-length": message.length
     }), res.end(message);
-})), enginefs.router.get(/^\/(?:[0-9a-f]{16,}\/|favicons\/|manifest\.json$)/, (function(req, res, next) {
-    // Static assets of the Stremio 5 web UI (hashed bundle dir, favicons,
-    // PWA manifest), proxied so they are same-origin (see proxyWebUIAsset).
+})), enginefs.router.get(/^\/(?:[0-9a-f]{16,}\/(?:scripts|styles|fonts|images|sounds|binaries|locales|assets)\/|fonts\/|images\/|sounds\/|favicons\/|manifest\.json$)/, (function(req, res, next) {
+    // Static assets of the Stremio 5 web UI (hashed bundle dir, fonts,
+    // images, favicons, PWA manifest), proxied so they are same-origin
+    // (see proxyWebUIAsset). The bundle-dir pattern requires an asset-like
+    // second segment so torrent infoHash routes (also 40-hex) never match,
+    // and unknown upstream files fall through to the original routes.
     return proxyWebUIAsset(req, res, next);
 })), enginefs.router.get("/betterstremio-v5", (function(req, res, next) {
     // New Stremio 5 desktop UI (same one the app normally shows) with
